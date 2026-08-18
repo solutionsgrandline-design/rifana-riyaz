@@ -946,12 +946,71 @@
     }
 
     .intro-inner .intro-ring {
+      position: relative;
       display: inline-block;
       font-size: clamp(20px, 4vw, 26px);
       color: var(--gold-light);
       margin-bottom: 28px;
       text-shadow: 0 0 14px rgba(201, 168, 232, .6);
       animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    /* rotating dashed halo behind the ring emoji */
+    .intro-inner .intro-ring::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 54px;
+      height: 54px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px dashed var(--gold-dim);
+      animation: spin 8s linear infinite;
+      pointer-events: none;
+    }
+
+    /* small sparkles drifting up inside the intro card */
+    .intro-inner .mini-spark {
+      position: absolute;
+      bottom: 10%;
+      font-size: 11px;
+      color: var(--gold-light);
+      opacity: 0;
+      pointer-events: none;
+      text-shadow: 0 0 6px rgba(201, 168, 232, .8);
+      animation: miniSparkRise 4.5s ease-in infinite;
+    }
+
+    .intro-inner .mini-spark.m1 {
+      left: 18%;
+      animation-delay: .6s;
+    }
+
+    .intro-inner .mini-spark.m2 {
+      left: 50%;
+      animation-delay: 2s;
+    }
+
+    .intro-inner .mini-spark.m3 {
+      left: 78%;
+      animation-delay: 3.2s;
+    }
+
+    @keyframes miniSparkRise {
+      0% {
+        transform: translateY(0) scale(.5);
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-160px) scale(1);
+        opacity: 0;
+      }
     }
 
     @keyframes pulse {
@@ -983,7 +1042,37 @@
       box-shadow: 0 12px 30px rgba(0, 0, 0, .5), 0 0 22px rgba(201, 168, 232, .18);
       transition: transform .5s cubic-bezier(.34, 1.56, .64, 1), box-shadow .3s ease, opacity .5s ease;
       opacity: 0;
-      animation: introIn .8s cubic-bezier(.16, .84, .44, 1) .9s forwards;
+      animation: introIn .8s cubic-bezier(.16, .84, .44, 1) .9s forwards,
+        btnBreathe 2.6s ease-in-out 1.9s infinite;
+    }
+
+    @keyframes btnBreathe {
+
+      0%,
+      100% {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, .5), 0 0 22px rgba(201, 168, 232, .18);
+      }
+
+      50% {
+        box-shadow: 0 12px 34px rgba(0, 0, 0, .5), 0 0 34px 4px rgba(201, 168, 232, .38);
+      }
+    }
+
+    /* click ripple */
+    #openBtn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .45);
+      transform: scale(0);
+      pointer-events: none;
+      animation: rippleOut .6s ease-out forwards;
+    }
+
+    @keyframes rippleOut {
+      to {
+        transform: scale(1);
+        opacity: 0;
+      }
     }
 
     #openBtn::after {
@@ -1494,6 +1583,8 @@
       .intro-ring,
       #openBtn,
       #openBtn::after,
+      .intro-ring::before,
+      .mini-spark,
       #musicToggle,
       .aura,
       html,
@@ -1590,6 +1681,9 @@
       <div class="intro-names">Rifana &amp; Riyaz</div>
       <div class="intro-tagline">Nikkah Invitation</div>
       <div class="intro-ring">💍</div>
+      <span class="mini-spark m1">✦</span>
+      <span class="mini-spark m2">✧</span>
+      <span class="mini-spark m3">✦</span>
       <button id="openBtn" aria-label="Open Invitation">Open Invitation</button>
       <p class="sub">Tap to reveal your special invite</p>
     </div>
@@ -1989,7 +2083,18 @@
       requestAnimationFrame(() => burst.classList.add("go"));
       setTimeout(() => burst.remove(), 1100);
 
-      document.getElementById("openBtn").classList.add("opened");
+      const openBtnEl = document.getElementById("openBtn");
+      const btnRect = openBtnEl.getBoundingClientRect();
+      const ripple = document.createElement("span");
+      ripple.className = "ripple";
+      const size = Math.max(btnRect.width, btnRect.height) * 1.4;
+      ripple.style.width = ripple.style.height = size + "px";
+      ripple.style.left = (e.clientX - btnRect.left - size / 2) + "px";
+      ripple.style.top = (e.clientY - btnRect.top - size / 2) + "px";
+      openBtnEl.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 650);
+
+      openBtnEl.classList.add("opened");
       setTimeout(() => {
         introEl.classList.add("hide");
         mainEl.classList.add("show");
